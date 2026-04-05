@@ -95,8 +95,8 @@ runtime {
     }
 
     jpackage {
-        imageName = 'SecureComm'
-        installerName = 'SecureComm'
+        imageName = 'ClientApp'
+        installerName = 'ClientApp'
         installerType = 'dmg'
         appVersion = '1.0.0'
 

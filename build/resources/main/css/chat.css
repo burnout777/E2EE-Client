@@ -1,0 +1,94 @@
+/* Base cell styles */
+.list-cell {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Monospaced';
+    -fx-font-size: 15px;
+    -fx-background-color: transparent;
+    -fx-padding: 6 15;
+}
+
+.list-cell:selected {
+    -fx-background-color: #111111;
+    -fx-text-fill: #FFFFFF;
+}
+
+.list-cell:hover {
+    -fx-background-color: #0a0a0a;
+}
+
+/*Input fields*/
+.text-field {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Monospaced';
+    -fx-prompt-text-fill: #666666;
+}
+
+/* All labels */
+.label {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Monospaced';
+}
+
+/* Buttons */
+.button {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Monospaced';
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-text-fill: #AAAAAA;
+}
+
+/* Scrollbars — hides the ugly default ones */
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #222222;
+    -fx-background-radius: 2;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.dim {
+    -fx-text-fill: #888888;
+}
+
+.danger {
+    -fx-text-fill: #FF3333;
+}
+
+.warning {
+    -fx-text-fill: #FF9900;
+}
+
+.success {
+    -fx-text-fill: #00FF00;
+}
+
+.button.dim:hover {
+    -fx-text-fill: #888888;
+}
+
+.button.dim {
+    -fx-text-fill: #FFFFFF;
+}
+
+.section-header {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 20px;
+    -fx-padding: 0 0 5 0;
+    -fx-border-color: #222222;
+    -fx-border-width: 0 0 1 0;
+}

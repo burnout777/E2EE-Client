@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="chatRoot" prefHeight="800.0" prefWidth="1200.0"
+            style="-fx-background-color: #050505;"
+            stylesheets="@../css/chat.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.client.controller.SettingsController">
+
+    <left>
+        <VBox prefWidth="220" style="-fx-border-color: #111; -fx-border-width: 0 1 0 0;">
+            <Label text="SETTINGS" style="-fx-font-size: 13px; -fx-padding: 15;"/>
+
+            <Label text="SECTIONS" style="-fx-padding: 5 15; -fx-font-size: 9px;" styleClass="label"/>
+
+            <Button text="  PROFILE" onAction="#showProfile"
+                    style="-fx-padding: 12 15; -fx-alignment: CENTER_LEFT; -fx-max-width: Infinity;"/>
+
+            <Button text="  KEY MANAGEMENT" onAction="#showKeyManagement"
+                    style="-fx-padding: 12 15; -fx-alignment: CENTER_LEFT; -fx-max-width: Infinity;"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <Button text="  [ LOGOUT ]" onAction="#handleLogout"
+                    styleClass="danger"
+                    style="-fx-padding: 12 15; -fx-alignment: CENTER_LEFT; -fx-max-width: Infinity;"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" style="-fx-padding: 15; -fx-border-color: #111; -fx-border-width: 0 0 1 0;">
+                <Button text="[ ← BACK ]" onAction="#handleBack"
+                        styleClass="dim" style="-fx-font-size: 11px; -fx-padding: 0;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="sectionLabel" text="PROFILE" style="-fx-font-size: 14px;"/>
+            </HBox>
+
+            <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS" style="-fx-padding: 40;">
+
+                <!-- PROFILE PANEL -->
+                <VBox fx:id="profilePanel" spacing="20" maxWidth="500" alignment="TOP_LEFT">
+                    <Label text="IDENTITY" styleClass="section-header" style="-fx-font-size: 9px;"/>
+                    <Label fx:id="usernameLabel" text="USER: —" style="-fx-font-size: 18px;"/>
+                    <Label fx:id="fingerprintLabel" text="FINGERPRINT: —" styleClass="text-field" style="-fx-font-size: 11px;"/>
+                </VBox>
+
+                <!-- KEY MANAGEMENT PANEL -->
+                <VBox fx:id="keyPanel" spacing="20" maxWidth="600" alignment="TOP_LEFT" visible="false">
+                    <Label text="CRYPTOGRAPHIC KEYS" styleClass="section-header" style="-fx-font-size: 9px;"/>
+
+                    <Label fx:id="identityKeyLabel" text="IDENTITY KEY: —" style="-fx-font-size: 11px;"/>
+
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label fx:id="onetimeKeyCountLabel" text="ONE-TIME KEYS REMAINING: —" style="-fx-font-size: 11px;"/>
+                        <Button text="[ + REPLENISH ]" onAction="#handleReplenishKeys"
+                                style="-fx-border-color: #333; -fx-border-width: 1; -fx-padding: 5 10;"/>
+                    </HBox>
+
+                    <Label text=" " styleClass="dim" style="-fx-font-size: 9px;"/>
+                    <Label text="IDENTITY ROTATION" styleClass="section-header" style="-fx-font-size: 9px;"/>
+                    <Label text="Generates a new identity key pair and re-registers it with the server."
+                           styleClass="text-field" style="-fx-font-size: 10px;"/>
+
+                    <Button text="[ ROTATE IDENTITY KEY ]" onAction="#handleRotateIdentity"
+                            styleClass="warning"
+                            style="-fx-border-color: #FF9900; -fx-border-width: 1; -fx-padding: 10 15;"/>
+
+                    <Label text=" " styleClass="dim" style="-fx-font-size: 9px;"/>
+                    <Label text="LEDGER INTEGRITY" styleClass="section-header" style="-fx-font-size: 9px;"/>
+                    <Label text="Verifies the server-side key rotation ledger has not been tampered with."
+                           styleClass="text-field" style="-fx-font-size: 10px;"/>
+
+                    <Button text="[ AUDIT LEDGER ]" onAction="#handleAuditLedger"
+                            style="-fx-border-color: #333; -fx-border-width: 1; -fx-padding: 10 15;"/>
+
+                    <Label fx:id="keyStatusLabel" text="" styleClass="success" style="-fx-font-size: 11px;"/>
+                </VBox>
+
+            </StackPane>
+        </VBox>
+    </center>
+</BorderPane>

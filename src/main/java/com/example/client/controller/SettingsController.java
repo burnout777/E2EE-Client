@@ -159,7 +159,7 @@ public class SettingsController {
     @FXML
     private void handleLogout() {
         try {
-            ViewSwitcher.switchTo("/fxml/login.fxml");
+            ViewSwitcher.switchTo("/fxml/Login.fxml");
         } catch (Exception e) {
             e.printStackTrace();
         }
