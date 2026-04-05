@@ -1,0 +1,114 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'org.beryx.runtime' version '1.13.1'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+javafx {
+    version = "21.0.2"
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.media']
+}
+
+dependencies {
+    implementation 'org.springframework:spring-core:6.2.5'
+    implementation 'org.springframework:spring-beans:6.2.5'
+    implementation 'org.springframework:spring-context:6.2.5'
+    implementation 'org.springframework:spring-messaging:6.2.5'
+    implementation 'org.springframework:spring-websocket:6.2.5'
+
+    implementation 'jakarta.websocket:jakarta.websocket-api:2.1.1'
+    implementation 'jakarta.websocket:jakarta.websocket-client-api:2.1.1'
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.1.5'
+
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
+
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.19.0'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.19.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
+
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:2.2.20')
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
+}
+
+application {
+    mainClass = 'com.example.client.Launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.register('cleanMacAttrs', Exec) {
+    commandLine 'xattr', '-cr', "$buildDir"
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': application.mainClass.get()
+        )
+    }
+}
+
+runtime {
+    options = ['--strip-debug', '--compress', 'zip-6', '--no-header-files', '--no-man-pages']
+
+    modules = [
+            'java.base',
+            'java.datatransfer',
+            'java.desktop',
+            'java.logging',
+            'java.management',
+            'java.naming',
+            'java.net.http',
+            'java.prefs',
+            'java.scripting',
+            'java.sql',
+            'java.transaction.xa',
+            'java.xml',
+            'jdk.crypto.ec',
+            'jdk.unsupported'
+    ]
+
+    launcher {
+        noConsole = true
+    }
+
+    jpackage {
+        imageName = 'SecureComm'
+        installerName = 'SecureComm'
+        installerType = 'dmg'
+        appVersion = '1.0.0'
+
+        imageOptions = [
+                '--icon', 'src/main/resources/icon.icns',
+                '--resource-dir', 'src/main/resources'
+        ]
+
+        installerOptions = [
+                '--vendor', 'Peter Game',
+                '--icon', 'src/main/resources/icon.icns',
+                '--resource-dir', 'src/main/resources'
+        ]
+    }
+}
