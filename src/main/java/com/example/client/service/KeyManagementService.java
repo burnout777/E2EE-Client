@@ -42,6 +42,21 @@ public class KeyManagementService {
         return 0;
     }
 
+    public int getLastRotation(String username) {
+        String url = String.format("%s/%s/lastrotation", baseUrl, username);
+        Request request = new Request.Builder().url(url).get().build();
+
+        try (Response response = authClient.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                return Integer.parseInt(response.body().string().trim());
+            }
+        } catch (Exception e) {
+            System.err.println("Last rotation check failed for " + username + "\n" + e.getMessage());
+
+        }
+        return 0;
+    }
+
     public void replenishPreKeys(LoadedIdentity identity) throws Exception {
         List<Map<String, String>> keyList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {

@@ -98,10 +98,6 @@ public class MessageService {
         // Sign and Encrypt
         String signature = CryptoUtil.sign(plainText, myIdentity.identityKeys.getPrivate());
 
-        String publickeypart = CryptoUtil.keyToString(myIdentity.identityKeys.getPublic());
-
-        System.err.println("Publickeypart: " + publickeypart);
-
         CryptoUtil.EncryptedMessage enc = CryptoUtil.encryptAES(aesKey, plainText);
 
         long timestamp = System.currentTimeMillis();
@@ -180,15 +176,16 @@ public class MessageService {
 
             // Prep for decryption
             KeyBundle historical = kms.fetchRecipientKeys(senderName, timestamp);
-            PublicKey senderIdentityKey = CryptoUtil.stringToPublicKey(historical.identityKey(), "Ed25519");
-            PublicKey senderEphemeral = CryptoUtil.stringToPublicKey(ephemeralKeyStr, "X25519");
+            PublicKey senderIdentityKey = CryptoUtil.stringToPublicKey(historical.identityKey(), CryptoConfig.SIGN_ALGO);
+            PublicKey senderEphemeral = CryptoUtil.stringToPublicKey(ephemeralKeyStr, CryptoConfig.KEY_EXCHANGE_ALGO);
             byte[] salt = Base64.getDecoder().decode(saltStr);
 
             for (Map.Entry<String, String> entry : myIdentity.preKeys.entrySet()) {
 
                 try {
-                    PrivateKey myPriv = CryptoUtil.stringToPrivateKey(entry.getValue(), "X25519");
-                    byte[] aesKey = CryptoUtil.performHKDF(CryptoUtil.performECDH(myPriv, senderEphemeral), salt);
+                    PrivateKey myPriv = CryptoUtil.stringToPrivateKey(entry.getValue(), CryptoConfig.KEY_EXCHANGE_ALGO);
+                    byte [] sharedSecret = CryptoUtil.performECDH(myPriv, senderEphemeral);
+                    byte[] aesKey = CryptoUtil.performHKDF(sharedSecret, salt);
 
                     // Use the local 'iv' and 'cipherText'
                     String plainText = CryptoUtil.decryptAES(aesKey, iv, cipherText);

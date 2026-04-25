@@ -5,6 +5,8 @@ import com.example.client.util.CryptoUtil;
 import com.example.client.util.KeyStorage;
 import okhttp3.*;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,45 @@ public class AccessService {
     public interface AccessCallback {
         void onSuccess(OkHttpClient authClient, LoadedIdentity identity, String passwordHash);
         void onFailure(String error);
+    }
+
+    public interface UsernameCheckCallback {
+        void onAvailable();
+        void onTaken();
+        void onFailure(String error);
+    }
+
+    public void checkUsernameAvailability(String username, UsernameCheckCallback callback) {
+        new Thread(() -> {
+            try {
+                String encodedUsername = URLEncoder.encode(username, StandardCharsets.UTF_8);
+                Request request = new Request.Builder()
+                        .url(SERVER_URL + "/availability/" + encodedUsername)
+                        .get()
+                        .build();
+                try (Response response = baseClient.newCall(request).execute()) {
+                    String body = response.body() != null ? response.body().string().trim() : "";
+
+                    if (response.isSuccessful()) {
+                        if ("AVAILABLE".equalsIgnoreCase(body)) {
+                            callback.onAvailable();
+                            return;
+                        }
+                        callback.onFailure("Unexpected availability response: " + body);
+                        return;
+                    }
+
+                    if (response.code() == 409 && "TAKEN".equalsIgnoreCase(body)) {
+                        callback.onTaken();
+                        return;
+                    }
+
+                    callback.onFailure("Could not check username.");
+                }
+            } catch (Exception e) {
+                callback.onFailure("Could not check username: " + e.getMessage());
+            }
+        }).start();
     }
 
     public void attemptAccess(String username, String rawPassword, AccessCallback callback) {
@@ -36,17 +77,23 @@ public class AccessService {
                     KeyManagementService kms = new KeyManagementService(authClient);
 
                     try {
-                        // Sync Pre-keys (Updates the identity's preKey map)
-                        //syncPreKeys(authClient, identity);
+                        // Perform rotation and get the new identity if it's been over a week since last rotation
+                        long lastRotation = kms.getLastRotation(username);
+                        long currentTime = System.currentTimeMillis();
 
-                        // Perform rotation and get the new identity
-                        identity = kms.rotateIdentity(identity, passwordHash);
+                        boolean olderThanAWeek =
+                                (currentTime - (lastRotation * 1000L)) > (7L * 24 * 60 * 60 * 1000);
 
-                        // Final check on pre-key counts
+                        if (olderThanAWeek) {
+                            identity = kms.rotateIdentity(identity, passwordHash);
+                        }
+
+                        // Check pre-key count and if it's too low replenish
                         if (kms.getServerPreKeyCount(username) < 10) {
                             kms.replenishPreKeys(identity);
                         }
 
+                        // Persist changes
                         KeyStorage.saveIdentityEncrypted(username, passwordHash, identity);
 
                     } catch (Exception e) {
@@ -58,23 +105,26 @@ public class AccessService {
 
 
                     // --- FLOW B: NEW USER ---
-                } else {
+                }  else {
                     KeyPair identityKeyPair = CryptoUtil.generateKeyPair();
                     String pubKeyStr = CryptoUtil.keyToString(identityKeyPair.getPublic());
 
-                    if (registerOnServer(username, passwordHash, pubKeyStr)) {
-                        LoadedIdentity identity = new LoadedIdentity(username, identityKeyPair, System.currentTimeMillis());
+                    String registrationResult = registerOnServer(username, passwordHash, pubKeyStr);
 
+                    if ("SUCCESS".equals(registrationResult)) {
+                        LoadedIdentity identity = new LoadedIdentity(
+                                username,
+                                identityKeyPair,
+                                System.currentTimeMillis()
+                        );
                         OkHttpClient authClient = createAuthenticatedClient(username, passwordHash);
-
-                        // Populate initial pre-keys
                         uploadPreKeys(authClient, identity);
-
-                        // Final save for new user
                         KeyStorage.saveIdentityEncrypted(username, passwordHash, identity);
                         callback.onSuccess(authClient, identity, passwordHash);
+                    } else if ("USERNAME_TAKEN".equals(registrationResult)) {
+                        callback.onFailure("USERNAME TAKEN");
                     } else {
-                        callback.onFailure("SERVER REGISTRATION FAILED");
+                        callback.onFailure(registrationResult);
                     }
                 }
             } catch (Exception e) {
@@ -83,7 +133,7 @@ public class AccessService {
         }).start();
     }
 
-    private boolean registerOnServer(String u, String p, String key) throws IOException {
+    private String registerOnServer(String u, String p, String key) throws IOException {
         String json = String.format("{\"username\":\"%s\",\"password\":\"%s\",\"publicKey\":\"%s\"}", u, p, key);
         Request request = new Request.Builder()
                 .url(SERVER_URL + "/register")
@@ -91,7 +141,17 @@ public class AccessService {
                 .build();
 
         try (Response response = baseClient.newCall(request).execute()) {
-            return response.isSuccessful();
+            String body = response.body() != null ? response.body().string().trim() : "";
+
+            if (response.isSuccessful()) {
+                return "SUCCESS";
+            }
+
+            if ((response.code() == 400 || response.code() == 409) && "Username taken".equalsIgnoreCase(body)) {
+                return "USERNAME_TAKEN";
+            }
+
+            return "SERVER REGISTRATION FAILED: " + body;
         }
     }
 
